@@ -1,7 +1,8 @@
-# CalibGuard-TF-Pro
+# 🛣️ CalibGuard-TF-Pro
 
 > **Camera–LiDAR Calibration Drift Detection & Recovery Monitor**  
-> 카메라–라이다 extrinsic calibration이 틀어졌을 때 projection이 어떻게 무너지는지 확인하고, TensorFlow 기반 경량 모델로 6DoF 보정값을 예측해 복구 여부를 시각화하는 프로젝트입니다.
+Camera–LiDAR Calibration Drift Detection & Recovery Monitor
+카메라–라이다 extrinsic calibration이 틀어졌을 때 LiDAR projection이 어떻게 무너지는지 확인하고, TensorFlow 기반 경량 모델로 6DoF 보정값을 예측해 복구 여부를 시각화하는 프로젝트입니다.
 
 ---
 
@@ -27,115 +28,74 @@ https://github.com/user-attachments/assets/ee162e54-e765-4c83-b7e8-3b2181c32e22
 
 ---
 
-## What is CalibGuard?
+### Overview
 
-CalibGuard는 KITTI-style camera–LiDAR 데이터를 이용해 다음 과정을 수행합니다.
+CalibGuard-TF-Pro는 camera–LiDAR extrinsic calibration drift를 다루는 프로젝트입니다.
 
-```text
+실제 자율주행/로보틱스 환경에서는 센서 장착 오차, 진동, 온도 변화 등으로 카메라와 라이다의 정렬이 틀어질 수 있습니다. 이 경우 LiDAR point가 이미지의 잘못된 위치에 projection되어 sensor fusion 성능이 떨어질 수 있습니다.
+
+이 프로젝트에서는 KITTI-style 데이터를 기반으로 calibration drift를 합성하고, 모델이 이를 다시 보정할 수 있는지 확인합니다.
+
 Normal Calibration
 → Synthetic Calibration Drift
-→ Drifted LiDAR Projection
+→ Drifted Projection
 → MSF-CalibNet Correction Prediction
 → Recovered Projection
-→ Recovery Metric / Visualization
-```
+→ Recovery Visualization
+Key Idea
 
-핵심 목표는 단순 projection demo가 아니라, **센서 보정 오류가 perception/fusion에 미치는 영향을 감지하고 복구하는 것**입니다.
+단순히 LiDAR point를 이미지에 올리는 projection demo가 아니라, calibration이 틀어졌을 때 projection이 얼마나 무너지는지, 그리고 복구 후 normal projection에 얼마나 가까워졌는지를 확인하는 것이 목적입니다.
 
----
+### Model
 
-## Key Features
+MSF-CalibNet은 TensorFlow 기반 경량 calibration correction model입니다.
 
-- KITTI-style camera–LiDAR projection
-- Synthetic 6DoF calibration drift injection
-- TensorFlow 기반 경량 보정 모델 `MSF-CalibNet`
-- 6DoF correction 예측: `[roll, pitch, yaw, tx, ty, tz]`
-- Normal / Drifted / Recovered projection 비교
-- Tri-color overlay 시각화
-- Error vector 기반 recovery 확인
-- Recovery rate / status 자동 계산
-- Demo video 자동 생성
-- TFLite export 지원
+입력은 한 프레임에서 만든 6채널 feature map입니다.
 
----
+Input	Description
+RGB image	카메라 이미지
+Sparse depth	drifted calibration으로 projection한 LiDAR depth
+Edge map	이미지 경계 정보
+Residual map	LiDAR projection과 image edge의 alignment 차이
 
-## Model Input / Output
+모델 출력은 다음과 같습니다.
 
-### Input
-
-MSF-CalibNet은 한 프레임을 6채널 tensor로 변환해 입력받습니다.
-
-| Channel | Description |
-|---|---|
-| RGB image | 카메라 이미지 |
-| Sparse depth map | drifted calibration으로 projection한 LiDAR depth |
-| Edge map | 이미지 경계 정보 |
-| Residual map | LiDAR point와 image edge의 alignment residual |
-
-```text
-Input: H x W x 6
-```
-
-### Output
-
-```text
 Correction: [roll, pitch, yaw, tx, ty, tz]
 Confidence: calibration confidence score
-```
 
----
+### Visualization
 
-## How to Read the Visualization
+Tri-color overlay는 normal, drifted, recovered projection을 한 이미지에 겹쳐서 보여줍니다.
 
-Tri-color overlay의 색상 의미는 다음과 같습니다.
+Color	Meaning
+Green	정상 calibration projection
+Red	drift가 들어간 projection
+Cyan	보정 후 recovered projection
 
-| Color | Meaning |
-|---|---|
-| Green | Normal projection |
-| Red | Drifted projection |
-| Cyan | Recovered projection |
+복구가 잘 되었다면 Cyan point가 Red point보다 Green point에 가까워져야 합니다.
 
-복구가 잘 되었다면:
+### Recovery Metric
 
-```text
-Cyan points should move closer to Green points than Red points.
-```
+복구 여부는 reprojection error 기반으로 계산합니다.
 
-즉, **Cyan이 Green에 가까워질수록 calibration recovery가 잘 된 것**입니다.
-
----
-
-## Recovery Metric
-
-Recovery rate는 drifted error가 recovered error에서 얼마나 줄었는지로 계산합니다.
-
-```text
 recovery_rate = (drifted_error - recovered_error) / drifted_error * 100
-```
+Status	Rule
+RECOVERED	recovery_rate >= 30%
+PARTIALLY_RECOVERED	recovery_rate >= 5%
+NOT_RECOVERED	recovery_rate < 5%
 
-| Status | Rule |
-|---|---|
-| RECOVERED | recovery_rate >= 30% |
-| PARTIALLY_RECOVERED | recovery_rate >= 5% |
-| NOT_RECOVERED | recovery_rate < 5% |
+Toy KITTI 기반 짧은 학습에서는 NOT_RECOVERED가 나올 수 있습니다. 이는 pipeline 문제가 아니라, toy data만으로는 모델이 충분한 calibration correction을 학습하기 어렵기 때문입니다.
 
-Toy KITTI의 짧은 학습에서는 `NOT_RECOVERED`가 나올 수 있습니다.  
-이는 pipeline 문제가 아니라 모델이 아직 충분히 학습되지 않았다는 의미입니다.
-
----
-
-## Project Structure
-
-```text
+### Project Structure
 CalibGuard-TF-Pro/
   calibguard/
     data/          # KITTI loader, drift dataset
     geometry/      # SE(3), projection, reprojection error
-    features/      # RGB/depth/edge/residual input builder
+    features/      # RGB/depth/edge/residual feature
     models/        # TensorFlow MSF-CalibNet
     recovery/      # edge-based refinement
     metrics/       # recovery metric
-    utils/         # visualization, TFLite, profiler
+    utils/         # visualization, TFLite
 
   scripts/
     00_make_toy_kitti.py
@@ -147,99 +107,22 @@ CalibGuard-TF-Pro/
     06_streamlit_dashboard.py
     07_make_demo_video.py
 
-  assets/
-    # 여기에 README에 넣을 이미지/영상 파일 넣기
-```
+### Summary
 
----
+CalibGuard-TF-Pro는 camera–LiDAR extrinsic drift를 합성하고, TensorFlow 기반 경량 모델로 6DoF calibration correction을 예측한 뒤, recovered projection이 normal projection에 가까워졌는지 시각화와 reprojection error로 확인하는 프로젝트입니다.
 
-## Asset Placement
+이 프로젝트를 통해 다음을 구현했습니다.
 
-GitHub README에 결과를 보이게 하려면 아래처럼 파일을 넣으면 됩니다.
+Camera–LiDAR projection
+Synthetic calibration drift generation
+6DoF calibration correction prediction
+Normal / Drifted / Recovered 비교
+Tri-color overlay 기반 recovery visualization
+Recovery rate / status 계산
+Demo video 자동 생성
 
-```text
-assets/
-  recovery_report_model_edge_refined.png   # Recovery Report 이미지 넣기
-  tricolor_overlay_model_edge_refined.png  # Green/Red/Cyan overlay 이미지 넣기
-  calibguard_demo.mp4                      # 자동 생성된 demo video 넣기
-  normal_projection.png                    # 선택: normal projection 이미지 넣기
-  drifted_projection.png                   # 선택: drifted projection 이미지 넣기
-  recovered_projection.png                 # 선택: recovered projection 이미지 넣기
-```
-
----
-
-## Quick Start: Toy KITTI
-
-```powershell
-conda env create -f environment.yml
-conda activate calibguard-tf
-python -m pip install -e .
-```
-
-```powershell
-python scripts/00_make_toy_kitti.py --out_dir data/toy_kitti/training --num_frames 24
-```
-
-```powershell
-python scripts/01_check_projection.py --data_root data/toy_kitti/training --frame_id 000000 --out_dir outputs/toy_projection_check
-```
-
-```powershell
-python scripts/02_train.py --data_root data/toy_kitti/training --out_dir runs/toy_msf_calibnet --epochs 50 --batch_size 4 --steps_per_epoch 100 --val_steps 20 --img_h 128 --img_w 384
-```
-
-```powershell
-python scripts/04_demo_recovery.py --data_root data/toy_kitti/training --model_path runs/toy_msf_calibnet/best.keras --frame_id 000000 --out_dir outputs/toy_recovery_demo --img_h 128 --img_w 384 --recovery_mode model_edge_refined
-```
-
-```powershell
-python scripts/07_make_demo_video.py --data_root data/toy_kitti/training --model_path runs/toy_msf_calibnet/best.keras --out_dir outputs/toy_demo_video --num_frames 24 --fps 4 --img_h 128 --img_w 384 --recovery_mode model_edge_refined --ramp_drift
-```
-
----
-
-## Real KITTI Training
-
-실제 KITTI Object Detection 데이터는 아래 구조로 준비합니다.
-
-```text
-data/kitti_object/training/
-  image_2/
-  velodyne/
-  calib/
-  label_2/
-```
-
-실제 학습:
-
-```powershell
-python scripts/02_train.py --data_root data/kitti_object/training --out_dir runs/kitti_msf_calibnet_real --epochs 50 --batch_size 8 --steps_per_epoch 1000 --val_steps 150 --img_h 192 --img_w 640
-```
-
-평가:
-
-```powershell
-python scripts/03_evaluate.py --data_root data/kitti_object/training --model_path runs/kitti_msf_calibnet_real/best.keras --out_csv runs/kitti_msf_calibnet_real/eval.csv --num_samples 500 --img_h 192 --img_w 640
-```
-
-데모 생성:
-
-```powershell
-python scripts/04_demo_recovery.py --data_root data/kitti_object/training --model_path runs/kitti_msf_calibnet_real/best.keras --frame_id 000000 --out_dir outputs/kitti_recovery_demo_real --img_h 192 --img_w 640 --recovery_mode model_edge_refined
-```
-
----
-
-## Portfolio Summary
-
-> CalibGuard-TF-Pro는 camera–LiDAR extrinsic drift를 합성하고, TensorFlow 기반 경량 모델로 6DoF calibration correction을 예측한 뒤, recovered projection이 normal projection으로 실제 가까워졌는지 reprojection error, tri-color overlay, error vector, recovery rate로 검증하는 프로젝트입니다.
-
----
-
-## Limitations
-
-- Toy KITTI는 pipeline 검증용입니다.
-- 최종 성능은 실제 KITTI 학습으로 평가해야 합니다.
-- 현재 모델은 single-frame 기반입니다.
-- 다음 단계는 temporal calibration encoder, KITTI Tracking, ROS2/C++ integration입니다.
+### Limitations
+Toy KITTI는 pipeline 검증용입니다.
+실제 성능 평가는 KITTI Object Detection 데이터로 진행해야 합니다.
+현재 모델은 single-frame 기반입니다.
+이후 temporal calibration drift detection으로 확장할 수 있습니다.
