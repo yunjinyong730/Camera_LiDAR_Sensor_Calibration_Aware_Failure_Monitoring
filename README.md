@@ -9,27 +9,21 @@
 
 ### Recovery Report
 
-(여기에 `assets/recovery_report_model_edge_refined.png` 넣기)
+<img width="2048" height="412" alt="recovery_report_model_edge_refined" src="https://github.com/user-attachments/assets/a607b93e-fd4c-4166-8318-8682405bc791" />
 
-```markdown
-![Recovery Report](assets/recovery_report_model_edge_refined.png)
-```
 
 ### Tri-color Overlay
 
-(여기에 `assets/tricolor_overlay_model_edge_refined.png` 넣기)
+<img width="1242" height="375" alt="tricolor_overlay_model_edge_refined" src="https://github.com/user-attachments/assets/2c45f1b4-1c85-4519-9b09-50f6c3f3e63a" />
 
-```markdown
-![Tri-color Overlay](assets/tricolor_overlay_model_edge_refined.png)
-```
 
 ### Demo Video
 
-(여기에 `assets/calibguard_demo.mp4` 넣기)
 
-```markdown
-[Demo Video](assets/calibguard_demo.mp4)
-```
+
+https://github.com/user-attachments/assets/ee162e54-e765-4c83-b7e8-3b2181c32e22
+
+
 
 ---
 
