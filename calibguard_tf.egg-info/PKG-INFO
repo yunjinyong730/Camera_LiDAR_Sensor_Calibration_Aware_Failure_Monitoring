@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: calibguard-tf
+Version: 0.1.0
+Summary: TensorFlow camera-LiDAR calibration correction project for KITTI
+Requires-Python: >=3.10

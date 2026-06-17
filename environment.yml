@@ -1,0 +1,16 @@
+name: calibguard-tf
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - numpy==1.26.4
+      - tensorflow==2.15.1
+      - opencv-python==4.9.0.80
+      - pyyaml
+      - tqdm
+      - pandas
+      - matplotlib
+      - streamlit
+      - scikit-learn
