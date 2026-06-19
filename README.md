@@ -375,7 +375,7 @@ xychart-beta
 
 ---
 
-#### 6️⃣ 학습 곡선 (Training History)
+#### 4️⃣ 학습 곡선 (Training History)
 
 ```mermaid
 xychart-beta
@@ -394,23 +394,6 @@ xychart-beta
 - **오버피팅**: 최소화됨 (Train/Val Loss 차이 ≈ 0)
 
 ---
-
-#### 7️⃣ 에러 분포 히스토그램
-
-```mermaid
-xychart-beta
-    title Error Distribution: Before vs After Correction
-    x-axis "Error Range (pixels)" ["0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30+"]
-    y-axis "Frame Count" 0 --> 12
-    bar [2, 4, 6, 5, 4, 2, 1]
-    bar [8, 7, 5, 2, 1, 1, 0]
-```
-
-**해석:**
-- 🔴 **첫번째 바**: Drifted Error 분포 (보정 전)
-- 🟢 **두번째 바**: Recovered Error 분포 (보정 후)
-- **개선**: 큰 오류(15px+)가 크게 감소
-- **성공 사례**: 8프레임이 5px 이내로 개선됨
 
 ### Interpret Results
 
