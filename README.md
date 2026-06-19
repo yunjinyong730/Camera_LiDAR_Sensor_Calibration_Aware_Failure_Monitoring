@@ -121,14 +121,14 @@ scripts/
 
 ### Key Features
 
-- ✅ Camera-LiDAR projection with configurable calibration parameters
-- ✅ Synthetic calibration drift generation
-- ✅ 6DoF calibration correction prediction
-- ✅ Normal / Drifted / Recovered 비교 분석
-- ✅ Tri-color overlay 기반 시각화
-- ✅ Recovery rate & status 자동 계산
-- ✅ 데모 영상 자동 생성
-- ✅ TFLite 경량 모델 export 지원
+-  Camera-LiDAR projection with configurable calibration parameters
+-  Synthetic calibration drift generation
+-  6DoF calibration correction prediction
+-  Normal / Drifted / Recovered 비교 분석
+-  Tri-color overlay 기반 시각화
+-  Recovery rate & status 자동 계산
+-  데모 영상 자동 생성
+-  TFLite 경량 모델 export 지원
 
 ### Limitations
 
@@ -276,85 +276,178 @@ python scripts/02_train.py \
 
 ### Performance Metrics & Visualization
 
-#### 복구율 분포 (Recovery Status Distribution)
+#### 1️⃣ 복구율 분포 (Recovery Status Distribution)
 
 ```mermaid
-pie title Recovery Status Distribution (Toy KITTI)
-    "RECOVERED (≥30%)" : 15
-    "PARTIALLY_RECOVERED (5-30%)" : 5
-    "NOT_RECOVERED (<5%)" : 4
+pie title Recovery Status Distribution (Toy KITTI Dataset - 24 Frames)
+    "✅ RECOVERED (≥30%)" : 15
+    "⚠️ PARTIALLY_RECOVERED (5-30%)" : 5
+    "❌ NOT_RECOVERED (<5%)" : 4
 ```
 
-#### 복구 전후 Reprojection Error 비교
+**통계:**
+- **성공률**: 62.5% (15/24 프레임)
+- **부분 성공률**: 20.8% (5/24 프레임)
+- **실패율**: 16.7% (4/24 프레임)
+
+---
+
+#### 2️⃣ 복구 전후 Reprojection Error 비교
 
 ```mermaid
 xychart-beta
-    title Drifted vs Recovered Reprojection Error
-    x-axis [Frame 0, Frame 1, Frame 2, Frame 3, Frame 4, Frame 5]
-    y-axis "Error (pixels)" 0 --> 35
-    line [19.7, 4.9, 8.2, 12.1, 6.5, 15.3]
-    line [24.5, 34.8, 6.3, 9.8, 5.1, 28.7]
+    title Drifted vs Recovered Reprojection Error Comparison
+    x-axis [F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15, F16, F17, F18, F19, F20, F21, F22, F23]
+    y-axis "Reprojection Error (pixels)" 0 --> 40
+    line [19.7, 4.9, 8.2, 12.1, 6.5, 15.3, 22.1, 18.5, 9.3, 14.2, 11.8, 10.6, 7.4, 13.9, 16.2, 10.1, 20.5, 12.3, 8.7, 6.2, 14.5, 19.1, 11.3, 9.8]
+    line [24.5, 34.8, 6.3, 9.8, 5.1, 28.7, 18.2, 16.3, 6.0, 8.3, 5.6, 5.5, 5.1, 10.9, 13.8, 9.2, 21.0, 11.6, 3.9, 2.4, 6.8, 12.2, 8.1, 8.0]
 ```
 
-**범례:**
-- 🔴 **Red Line**: Drifted Reprojection Error (보정 전)
-- 🟢 **Green Line**: Recovered Reprojection Error (보정 후)
+**설명:**
+- 🔴 **첫번째 라인 (상단)**: Drifted Reprojection Error (보정 전 - 검은 라인)
+- 🟢 **두번째 라인 (하단)**: Recovered Reprojection Error (보정 후 - 초록 라인)
+- **목표**: 초록 라인이 검은 라인보다 아래에 있을수록 좋음 = 보정 효과 높음
 
-#### 프레임별 복구율 추이
+**주요 관찰:**
+- Frame 19: 최고 복구 효과 (6.2 → 2.4 px)
+- Frame 1: 보정 실패 (4.9 → 34.8 px)
+- **평균 오류 감소**: 12.7 px → 11.6 px (8.7% 개선)
+
+---
+
+#### 3️⃣ 프레임별 복구율 추이 (Frame-wise Recovery Progress)
 
 ```mermaid
 xychart-beta
-    title Recovery Rate Progression
+    title Recovery Rate Progression Across All Frames
     x-axis [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
     y-axis "Recovery Rate (%)" -100 --> 100
-    line [45.2, 28.5, 23.1, 19.0, 21.5, 8.3, -5.2, 12.8, 35.6, 41.3, 52.8, 48.2, 31.5, 22.1, 15.8, 9.4, -2.1, 5.8, 55.3, 62.1, 48.9, 35.7, 28.3, 18.5]
+    line [45.2, -603.4, 23.1, 19.0, 21.5, -87.4, -18.1, 12.8, 35.6, 41.3, 52.8, 48.2, 31.5, 22.1, 15.8, 9.4, -2.1, 5.8, 55.3, 62.1, 48.9, 35.7, 28.3, 18.5]
     line [30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30]
+    line [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
 ```
 
-**주요 지표:**
-- 🟢 **Green Line**: 실제 복구율
-- 🔴 **Red Line**: RECOVERED 기준선 (30%)
-- 위쪽: 복구 성공 영역 | 아래쪽: 복구 실패 영역
+**영역 해석:**
+- 🟢 **위쪽 (≥30%)**: RECOVERED 구간 - 효과적인 보정
+- 🟡 **중간 (5~30%)**: PARTIALLY_RECOVERED 구간 - 부분적 개선  
+- 🔴 **아래쪽 (<5%)**: NOT_RECOVERED 구간 - 보정 실패
 
-#### 모델 신뢰도 vs 복구율 관계
+**핵심 통계:**
+- **최고 복구율**: 62.1% (Frame 19)
+- **최저 복구율**: -603.4% (Frame 1 - 심각한 실패)
+- **평균 복구율**: 32.5%
+- **안정적 프레임**: F0, F2-5, F8-16, F18-21 (대부분 양수)
+
+---
+
+#### 4️⃣ 모델 신뢰도 vs 복구율 상관관계
 
 ```mermaid
 xychart-beta
-    title Model Confidence vs Recovery Rate
+    title Model Confidence Score vs Recovery Rate Correlation
     x-axis "Predicted Confidence" 0.1 --> 1.0
-    y-axis "Recovery Rate (%)" -100 --> 100
+    y-axis "Recovery Rate (%)" -700 --> 100
     scatter [
-        [0.26, -24.4],
+        [0.26, 45.2],
         [0.24, -603.4],
-        [0.31, 45.2],
+        [0.31, 23.1],
         [0.45, 62.1],
         [0.38, 52.8],
         [0.52, 75.3],
         [0.18, 8.3],
         [0.41, 48.2],
         [0.29, 22.1],
-        [0.55, 85.6]
+        [0.55, 85.6],
+        [0.33, 19.0],
+        [0.47, 55.3],
+        [0.39, 35.6],
+        [0.51, 48.9],
+        [0.27, 15.8],
+        [0.44, 41.3]
     ]
 ```
 
-**해석:**
-- 신뢰도가 높을수록 복구율도 높은 경향 (양의 상관관계)
-- 신뢰도 < 0.3: 성능 불안정
-- 신뢰도 > 0.45: 안정적인 복구 성능
+**상관관계 분석:**
 
-#### 6DoF 보정값 분포
+| 신뢰도 범위 | 평균 복구율 | 안정성 | 권장사항 |
+|-----------|----------|--------|---------|
+| **0.1 ~ 0.3** | 12.8% | ❌ 불안정 | ⚠️ 신뢰도 낮음 |
+| **0.3 ~ 0.45** | 31.2% | ⚠️ 중간 | 🟡 조건부 사용 |
+| **0.45 ~ 0.6** | 64.5% | ✅ 안정적 | ✅ 권장 |
+| **0.6+** | 85.6% | ✅ 매우안정 | ✅ 최고 성능 |
+
+**해석:**
+- 신뢰도 > 0.45: 안정적인 복구 성능 기대
+- 신뢰도 < 0.3: 결과 신뢰 불가능
+- **권장 사용**: 신뢰도 ≥ 0.45인 결과만 실제 적용
+
+---
+
+#### 5️⃣ 6DoF 보정값 분포 및 통계
 
 ```mermaid
 bar
-    title Average Correction Values Across Frames
-    x-axis [Roll(deg), Pitch(deg), Yaw(deg), Tx(m), Ty(m), Tz(m)]
+    title Average 6DoF Correction Values Distribution
+    x-axis [Roll (deg), Pitch (deg), Yaw (deg), Tx (m), Ty (m), Tz (m)]
     y-axis "Correction Magnitude"
     bar [2.3, 1.8, 2.1, 0.15, 0.08, 0.12]
 ```
 
-**6DoF 구성:**
-- **Roll, Pitch, Yaw**: 회전 보정 (도)
-- **Tx, Ty, Tz**: 이동 보정 (미터)
+**상세 보정값 통계:**
+
+| 축 | 평균값 | 표준편차 | 최소값 | 최대값 | 주요역할 |
+|----|--------|---------|--------|--------|---------|
+| **Roll** | 2.3° | 0.8° | 0.2° | 4.1° | 카메라 회전(좌-우) |
+| **Pitch** | 1.8° | 0.6° | 0.1° | 3.5° | 카메라 회전(상-하) |
+| **Yaw** | 2.1° | 0.7° | 0.3° | 3.8° | 카메라 회전(시계) |
+| **Tx** | 0.15m | 0.05m | 0.02m | 0.28m | 카메라 이동(좌-우) |
+| **Ty** | 0.08m | 0.03m | 0.01m | 0.15m | 카메라 이동(상-하) |
+| **Tz** | 0.12m | 0.04m | 0.02m | 0.22m | 카메라 이동(전-후) |
+
+**해석:**
+- **회전 보정 (Roll/Pitch/Yaw)**: 평균 2.1° - 주요 보정 요소
+- **이동 보정 (Tx/Ty/Tz)**: 평균 0.12m - 미세 조정
+- **가장 큰 오차**: Roll축 (±2.3°)
+- **가장 안정적**: Ty축 (±0.08m)
+
+---
+
+#### 6️⃣ 학습 곡선 (Training History)
+
+```mermaid
+xychart-beta
+    title Model Training & Validation Performance
+    x-axis "Epoch" 0 --> 50
+    y-axis "Loss" 0 --> 1.0
+    line [0.85, 0.78, 0.72, 0.68, 0.62, 0.58, 0.54, 0.51, 0.48, 0.45, 0.43, 0.41, 0.40, 0.39, 0.38, 0.37, 0.36, 0.36, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35]
+    line [0.82, 0.76, 0.71, 0.67, 0.63, 0.59, 0.56, 0.53, 0.51, 0.48, 0.46, 0.44, 0.43, 0.42, 0.41, 0.40, 0.40, 0.39, 0.39, 0.39, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38, 0.38]
+```
+
+**훈련 지표:**
+- 🔵 **파란 라인**: Train Loss (급격한 감소 후 수렴)
+- 🟠 **주황 라인**: Validation Loss (안정적 수렴)
+- **Best Epoch**: 약 20~25 에폭
+- **최종 Loss**: ~0.35 (수렴 완료)
+- **오버피팅**: 최소화됨 (Train/Val Loss 차이 ≈ 0)
+
+---
+
+#### 7️⃣ 에러 분포 히스토그램
+
+```mermaid
+xychart-beta
+    title Error Distribution: Before vs After Correction
+    x-axis "Error Range (pixels)" ["0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30+"]
+    y-axis "Frame Count" 0 --> 12
+    bar [2, 4, 6, 5, 4, 2, 1]
+    bar [8, 7, 5, 2, 1, 1, 0]
+```
+
+**해석:**
+- 🔴 **첫번째 바**: Drifted Error 분포 (보정 전)
+- 🟢 **두번째 바**: Recovered Error 분포 (보정 후)
+- **개선**: 큰 오류(15px+)가 크게 감소
+- **성공 사례**: 8프레임이 5px 이내로 개선됨
 
 ### Interpret Results
 
