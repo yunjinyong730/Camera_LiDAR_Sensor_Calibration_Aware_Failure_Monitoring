@@ -82,8 +82,9 @@ Recovery Visualization & Metrics
 ### Recovery Metrics
 
 복구 성공 여부는 reprojection error 기반으로 평가됩니다.
-
-$$\text{recovery\_rate} = \frac{\text{drifted\_error} - \text{recovered\_error}}{\text{drifted\_error}} \times 100\%$$
+```
+recovery_rate = (drifted_error - recovered_error) / drifted_error × 100 (%)
+```
 
 | 상태 | 기준 |
 |------|------|
