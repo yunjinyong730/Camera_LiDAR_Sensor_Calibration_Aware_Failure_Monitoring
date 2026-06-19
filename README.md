@@ -356,16 +356,6 @@ xychart-beta
 
 ---
 
-#### 5️⃣ 6DoF 보정값 분포 및 통계
-
-```mermaid
-bar
-    title Average 6DoF Correction Values Distribution
-    x-axis [Roll (deg), Pitch (deg), Yaw (deg), Tx (m), Ty (m), Tz (m)]
-    y-axis "Correction Magnitude"
-    bar [2.3, 1.8, 2.1, 0.15, 0.08, 0.12]
-```
-
 **상세 보정값 통계:**
 
 | 축 | 평균값 | 표준편차 | 최소값 | 최대값 | 주요역할 |
