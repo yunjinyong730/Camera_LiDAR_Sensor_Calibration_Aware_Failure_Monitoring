@@ -171,44 +171,6 @@ pip install -e .
 
 ---
 
-## Quick Start
-
-### 1️⃣ Generate Toy Dataset
-
-```bash
-python scripts/00_make_toy_kitti.py --output_dir data/toy_kitti
-```
-
-### 2️⃣ Verify Projection
-
-```bash
-python scripts/01_check_projection.py --data_dir data/toy_kitti --output_dir outputs/toy_projection_check
-```
-
-### 3️⃣ Train Model
-
-```bash
-python scripts/02_train.py --config configs/default.yaml --data_dir data/toy_kitti --output_dir runs/toy_msf_calibnet
-```
-
-### 4️⃣ Evaluate Recovery
-
-```bash
-python scripts/03_evaluate.py --model runs/toy_msf_calibnet/best.keras --data_dir data/toy_kitti --output_dir outputs/toy_recovery_demo_realish
-```
-
-### 5️⃣ Generate Demo Video
-
-```bash
-python scripts/07_make_demo_video.py --frames_dir outputs/toy_recovery_demo_realish --output_path outputs/toy_demo_video_realish.mp4
-```
-
-### 6️⃣ Interactive Dashboard
-
-```bash
-streamlit run scripts/06_streamlit_dashboard.py --logger.level=debug
-```
-
 ---
 
 ## Scripts Guide
@@ -246,40 +208,6 @@ outputs/
 └── recovery_report_*.png           # 최종 리포트 이미지
 ```
 
-### Metrics JSON Format
-
-**프레임별 메트릭 (`000000_metrics.json`):**
-```json
-{
-  "frame_id": "000000",
-  "drifted_error_px": 12.5,
-  "recovered_error_px": 3.2,
-  "recovery_rate": 74.4,
-  "status": "RECOVERED",
-  "correction": {
-    "roll": 0.015,
-    "pitch": -0.008,
-    "yaw": 0.022,
-    "tx": 0.05,
-    "ty": -0.03,
-    "tz": 0.12
-  },
-  "confidence": 0.92
-}
-```
-
-**비디오 메트릭 (`video_metrics.json`):**
-```json
-{
-  "total_frames": 24,
-  "avg_recovery_rate": 65.3,
-  "recovered_count": 18,
-  "partially_recovered_count": 5,
-  "not_recovered_count": 1,
-  "min_recovery_rate": -5.2,
-  "max_recovery_rate": 89.1
-}
-```
 
 ### Recovery Status Breakdown
 
